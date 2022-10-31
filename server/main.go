@@ -5,9 +5,10 @@ import (
 	"log"
 
 	"github.com/gofiber/fiber/v2"
+	"github.com/gofiber/fiber/v2/middleware/cors"
 )
 
-type Todo struct {
+type TodoSkeleton struct {
 	ID    int    `json:"id"`
 	Title string `json:"title"`
 	Done  bool   `json:"done"`
@@ -20,8 +21,14 @@ func main() {
 	//instantiating the server
 	app := fiber.New()
 
-	//creating the todo list
-	todos := []Todo{}
+	//Allow CORS
+	app.Use(cors.New(cors.Config{
+		AllowOrigins: "http://127.0.0.1:5173",
+		AllowHeaders: "Origin, Content-Type, Accept",
+	}))
+
+	//declaring the todo list
+	todos := []TodoSkeleton{}
 
 	//---------------------Creating different end points---------------------
 	app.Get("/healthCheck", func(c *fiber.Ctx) error {
@@ -33,7 +40,7 @@ func main() {
 	})
 
 	app.Post("/api/addTodos", func(c *fiber.Ctx) error {
-		todo := &Todo{}
+		todo := &TodoSkeleton{}
 
 		if err := c.BodyParser(todo); err != nil {
 			return err
@@ -53,7 +60,7 @@ func main() {
 			return c.Status(401).SendString("Invalid id")
 		}
 
-		//iterate through todos and check if the id matches todo.ID mark the todo.done as true
+		//iterate through todos and if the id matches todo.ID, mark the todo.done as true
 		for i, t := range todos {
 			if t.ID == todoIdToPatch {
 				todos[i].Done = true
